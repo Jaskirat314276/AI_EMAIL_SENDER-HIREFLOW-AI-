@@ -19,6 +19,14 @@ Upload a list of recruiters, let AI personalize an email for each one from your 
 
 ---
 
+<div align="center">
+  <img src="./docs/screenshot.png" alt="HireFlow AI — Connect your Gmail" width="820">
+  <br>
+  <sub><i>Send-as-you onboarding — HireFlow only ever requests the <code>gmail.send</code> scope.</i></sub>
+</div>
+
+---
+
 ## ✨ Features
 
 - 📤 **Bulk recruiter import** — drop in a CSV/XLSX of names, emails, companies and roles.
