@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+*.local
+
+# Build output
+dist/
+build/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Personal files
+JASKIRAT_RESUME_SDE_M.pdf
+*.pdf
