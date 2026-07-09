@@ -56,10 +56,10 @@ export const DEFAULT_PROFILE = {
     github: 'https://github.com/',
     leetcode: 'https://leetcode.com/Jaskirat-singh',
   },
-  subject_template: 'Application for software engineering roles at {{company}}',
+  subject_template: 'Application for the {{apply_role}} role at {{company}}',
   body_template: `Hi {{first_name}},
 
-I'm Jaskirat Singh, a final-year B.Tech (Electrical & Electronics) student at BIT Mesra, graduating May 2026. I'm reaching out to express my interest in software engineering opportunities at {{company}}.
+I'm Jaskirat Singh, a final-year B.Tech (Electrical & Electronics) student at BIT Mesra, graduating May 2026. I'm reaching out to express my interest in the {{apply_role}} role at {{company}}.
 
 I have 2+ years of hands-on experience building production web applications. At my current internship at Productimate AI Solutions, I designed and shipped an end-to-end school ERP web application on AWS (Next.js + PostgreSQL) with an automated CI/CD pipeline that deploys in 2 minutes at $7/month, serving four user roles with full CRUD across 15 REST endpoints.
 

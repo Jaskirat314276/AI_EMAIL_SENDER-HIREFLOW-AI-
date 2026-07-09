@@ -70,6 +70,15 @@ router.post('/generate', async (req, res) => {
       });
       continue;
     }
+    if (has && (has.status === 'queued' || has.status === 'sending')) {
+      // Never reset a row the send queue owns back to 'draft' — that would drop it from
+      // the current run or, with a re-enqueue, double-send it.
+      results.push({
+        recipient_id: r.id, name: r.name, email: r.email, company: r.company,
+        subject: has.subject, body: has.body, in_queue: true,
+      });
+      continue;
+    }
     if (has && !regenerate) {
       results.push({
         recipient_id: r.id, name: r.name, email: r.email, company: r.company,

@@ -7,6 +7,10 @@ import TopBar from './components/TopBar.jsx';
 import Btn from './components/Btn.jsx';
 import Profile from './views/Profile.jsx';
 import Recipients from './views/Recipients.jsx';
+import Tracker from './views/Tracker.jsx';
+
+const TITLES = { recipients: 'Recipients', tracker: 'Tracker', profile: 'Profile' };
+const EYEBROWS = { recipients: 'Workspace', tracker: 'Workspace · Pipeline', profile: 'Workspace · Settings' };
 
 export default function App() {
   const [authState, setAuthState] = useState({ loading: true, connected: false, user: null });
@@ -51,7 +55,7 @@ export default function App() {
       <div className="flex" style={{
         background: c.bg, color: c.text, height: '100vh',
         fontFamily: fBody, overflow: 'hidden',
-        backgroundImage: `radial-gradient(circle at 0% 0%, rgba(232, 168, 56, 0.04), transparent 40%)`,
+        backgroundImage: `radial-gradient(circle at 0% 0%, rgba(232, 168, 56, 0.05), transparent 42%), radial-gradient(circle at 100% 100%, rgba(104, 146, 184, 0.035), transparent 46%)`,
       }}>
         {authState.loading && <Loading />}
         {!authState.loading && !authState.connected && <ConnectGate onConnected={checkAuth} />}
@@ -60,12 +64,15 @@ export default function App() {
             <Sidebar view={view} setView={setView} user={authState.user} onLogout={logout} />
             <main className="flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
               <TopBar
-                eyebrow={view === 'recipients' ? 'Workspace' : 'Workspace · Settings'}
-                title={view === 'recipients' ? 'Recipients' : 'Profile'}
+                eyebrow={EYEBROWS[view] || 'Workspace'}
+                title={TITLES[view] || 'Recipients'}
               />
               <div className="flex-1" style={{ overflow: 'hidden' }}>
-                {view === 'recipients' && <Recipients />}
-                {view === 'profile'    && <Profile />}
+                <div key={view} className="hf-view" style={{ height: '100%' }}>
+                  {view === 'recipients' && <Recipients />}
+                  {view === 'tracker'    && <Tracker />}
+                  {view === 'profile'    && <Profile />}
+                </div>
               </div>
             </main>
           </>

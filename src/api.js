@@ -36,6 +36,7 @@ export const api = {
   recipients: {
     list:    () => req('/recipients').then((d) => d.recipients),
     add:     (recipient) => req('/recipients', { method: 'POST', body: recipient }),
+    update:  (id, patch) => req(`/recipients/${id}`, { method: 'PUT', body: patch }).then((d) => d.recipient),
     remove:  (id) => req(`/recipients/${id}`, { method: 'DELETE' }),
     clear:   () => req('/recipients', { method: 'DELETE' }),
   },
@@ -59,8 +60,24 @@ export const api = {
     test: () => req('/send/test', { method: 'POST' }),
     one:  (id, { dry_run = false } = {}) =>
       req(`/send/${id}`, { method: 'POST', body: { dry_run } }),
-    all:  ({ dry_run = false, throttle_ms = 8000 } = {}) =>
-      req('/send', { method: 'POST', body: { dry_run, throttle_ms } }),
+    // repointed to the non-blocking enqueue endpoint
+    all:  ({ include_failed = false, dry_run = false } = {}) =>
+      req('/send', { method: 'POST', body: { include_failed, dry_run } }),
+    queue: {
+      start:    ({ include_failed = false, dry_run = false, recipient_ids = null } = {}) =>
+        req('/send/queue', { method: 'POST', body: { include_failed, dry_run, recipient_ids } }),
+      pause:    () => req('/send/pause',  { method: 'POST' }),
+      resume:   () => req('/send/resume', { method: 'POST' }),
+      cancel:   () => req('/send/cancel', { method: 'POST' }),
+      status:   () => req('/send/queue/status'),
+      settings: (patch) => req('/send/queue/settings', { method: 'PUT', body: patch }).then((d) => d.settings),
+    },
+  },
+
+  tracker: {
+    list:   () => req('/tracker').then((d) => d.applications),
+    update: (recipient_id, patch) =>
+      req(`/tracker/${recipient_id}`, { method: 'PATCH', body: patch }).then((d) => d.row),
   },
 };
 

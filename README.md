@@ -2,9 +2,9 @@
 
 # ✉️ HireFlow AI
 
-### AI-powered cold-email outreach for job seekers
+### Your entire job-outreach pipeline, on autopilot.
 
-Upload a list of recruiters, let AI personalize an email for each one from your profile, and send it through **your own Gmail** — so every message lands as a genuine, personal note.
+Drop a spreadsheet of recruiters → HireFlow **extracts** and classifies every contact, **personalizes** an email from your profile, **sends** them at a human pace through **your own Gmail**, and **tracks** each application to the offer.
 
 <p>
   <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white">
@@ -27,40 +27,80 @@ Upload a list of recruiters, let AI personalize an email for each one from your 
 
 ---
 
-## ✨ Features
+## 🔀 The workflow
 
-- 📤 **Bulk recruiter import** — drop in a CSV/XLSX of names, emails, companies and roles.
-- 🧠 **AI personalization** — each email names the recruiter, their company, your most relevant projects, and real measurable impact.
-- 📝 **Template mail-merge first** — fast, deterministic templates by default, with **LLM generation as an opt-in fallback** (Groq · Llama 3.3 70B).
-- 👤 **Reusable profile** — seed your skills, experience and projects once, edit anytime.
-- 🔐 **Send as you** — Gmail OAuth means mail goes out from *your* account, not a relay.
-- 🗂️ **Draft review** — every generated email is saved so you can review before it sends.
+```
+ Upload   →   Extract    →   Personalize   →   Review   →   Send (paced)   →   Track
+ CSV/XLSX     columns +      mail-merge         edit         queue · random     per-contact
+              classify       per contact        inline       order · capped     pipeline
+```
+
+---
+
+## ✨ What it does
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 📥 Smart extraction
+- Drop any **CSV / XLSX** — even messy ones (merged title banners, typo'd headers, honorifics).
+- Auto-detects **company, contact, email, role** and the **role you're applying for**.
+- **Classifies** each contact as HR / recruiter / exec / founder from title + email.
+
+### 📝 Personalization, still human
+- Template **mail-merge** by default: `{{first_name}}` `{{company}}` `{{apply_role}}` `{{contact_title}}` …
+- Honorifics stripped, initials handled — *"Mr. R Murali"* → *"Hi R Murali,"*.
+- **Groq · Llama 3.3 70B** as an opt-in generative fallback.
+
+### ✍️ Review & edit
+- Inline-edit any contact field **and** the drafted email before it sends.
+- **Multi-select** rows or **pick N at random** to send just a subset.
+
+</td>
+<td width="50%" valign="top">
+
+### 🚦 Paced send queue
+- **DB-backed queue + background worker** — one at a time, in **random order**.
+- **Configurable** delay + **daily cap** so Gmail never flags you.
+- **Pause / resume / cancel**, restart-safe, and **never double-sends**.
+- **Live toasts** — animated ✓ sent · ✗ failed · ⟳ in progress.
+
+### 📊 Application tracker
+- Every sent contact enters a **pipeline**: Replied → OA → R1 → R2 → R3 → Result.
+- Reply-source, notes, and stage timestamps — inline, saved instantly.
+
+### 🔐 Send as you
+- **Gmail OAuth** — mail goes out from *your* account for best deliverability.
+- Secrets and the local database never leave your machine.
+
+</td>
+</tr>
+</table>
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────┐         ┌────────────────────────────┐
-│  Browser (Vite/React)│ ──────▶ │  Express server :4000      │
-│  localhost:5173      │ cookies │  /auth   /profile          │
-│  Profile · Recipients│         │  /upload /recipients       │
-│                      │         │  /generate /send           │
-└──────────────────────┘         └──────────┬──────────┬──────┘
-                                            │          │
-                                     ┌──────▼────┐ ┌───▼────────┐
-                                     │  SQLite   │ │  Groq API  │
-                                     │ hireflow  │ │ Llama 3.3  │
-                                     │   .db     │ │   70B      │
-                                     └───────────┘ └────────────┘
-                                            │
-                                     ┌──────▼─────────┐
-                                     │  Gmail API     │
-                                     │  (OAuth 2.0)   │
-                                     └────────────────┘
+┌───────────────────────────┐        ┌──────────────────────────────────────────┐
+│  Browser · React + Vite   │ ─────▶ │  Express server  :4000                     │
+│  localhost:5173           │ cookie │  /auth  /profile  /upload  /recipients     │
+│  Recipients · Tracker      │        │  /generate  /send · /send/queue*  /tracker │
+│  Profile                  │        └───────┬───────────────┬───────────┬────────┘
+└───────────────────────────┘                │               │           │
+                                    ┌─────────▼──────┐  ┌─────▼─────┐  ┌──▼─────────┐
+                                    │  SQLite (WAL)  │  │  Groq API │  │  Gmail API │
+                                    │  hireflow.db   │  │ Llama 3.3 │  │ (OAuth 2.0)│
+                                    └───────┬────────┘  │ 70B (opt) │  └────────────┘
+                                            │           └───────────┘
+                                   ┌────────▼─────────┐
+                                   │  Background      │  paced, capped,
+                                   │  send worker     │  restart-safe drip
+                                   └──────────────────┘
 ```
 
-One Express service handles everything — no microservices, no queues, no Redis. Intentionally minimal.
+One Express service — no microservices, no Redis. The **send worker** is a single in-process singleton draining a DB-backed queue.
 
 ---
 
@@ -68,11 +108,39 @@ One Express service handles everything — no microservices, no queues, no Redis
 
 | Layer        | Tools                                                        |
 | ------------ | ----------------------------------------------------------- |
-| **Frontend** | React 18 · Vite 5 · Tailwind CSS 3 · lucide-react · recharts |
-| **Backend**  | Node.js · Express 4 · better-sqlite3                         |
+| **Frontend** | React 18 · Vite 5 · Tailwind CSS 3 · lucide-react           |
+| **Backend**  | Node.js · Express 4 · better-sqlite3 (WAL)                   |
 | **Auth**     | Google OAuth 2.0 (`googleapis`)                             |
-| **AI**       | Groq API — Llama 3.3 70B (opt-in)                            |
+| **AI**       | Groq API — Llama 3.3 70B (opt-in)                           |
 | **Parsing**  | papaparse · xlsx · multer                                    |
+
+---
+
+## 🧩 Modular structure
+
+The UI is built from a small design-system of composable primitives; the backend splits cleanly into services (logic) and routes (HTTP).
+
+```
+src/                            # React frontend
+├── App.jsx                     # auth gate + view switcher + ambient shell
+├── api.js                      # typed backend client
+├── design.js                  # theme tokens · gradients · shadows
+├── index.css                  # motion system (keyframes + utilities)
+├── components/                 # design system
+│   ├── Card · StatTile · SectionHeader · Field
+│   ├── Btn · Pill · Sidebar · TopBar
+│   └── StatusMark · Toasts · QueuePanel     # animated send status
+└── views/                      # Recipients · Tracker · Profile
+
+server/src/                     # Express backend
+├── index.js                    # entry · mounts routes · boots send worker
+├── db.js                       # schema + migrations (user_version 3)
+├── lib/                        # auth · profile-seed
+├── services/                   # parser · designation · render · google
+│                               # gmail-send · llm · queue · worker · profile
+└── routes/                     # auth · profile · upload · recipients
+                                # generate · send · tracker
+```
 
 ---
 
@@ -88,7 +156,7 @@ cd AI_EMAIL_SENDER-HIREFLOW-AI-
 # 2 — backend
 cd server
 npm install
-cp .env.example .env        # then fill in your credentials (see below)
+cp .env.example .env        # fill in your credentials (below)
 npm run dev                 # → http://localhost:4000
 
 # 3 — frontend (new terminal, from repo root)
@@ -96,7 +164,7 @@ npm install
 npm run dev                 # → http://localhost:5173
 ```
 
-### Environment variables (`server/.env`)
+### Environment (`server/.env`)
 
 ```ini
 PORT=4000
@@ -106,45 +174,23 @@ CORS_ORIGIN=http://localhost:5173
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=http://localhost:4000/auth/google/callback
-GROQ_API_KEY=
+GROQ_API_KEY=                # optional — only for the AI fallback
 ```
 
 > 🔒 `.env` and the SQLite database are gitignored — secrets never leave your machine.
-
----
-
-## 📁 Project structure
-
-```
-AI-EMAIL-SENDER/
-├── index.html                  # Vite entry
-├── src/                        # React frontend
-│   ├── App.jsx                 # auth gate + view router
-│   ├── api.js                  # backend fetch calls
-│   ├── components/             # shared UI atoms (Btn, Pill, Sidebar, TopBar)
-│   └── views/                  # Profile, Recipients
-└── server/                     # Express backend
-    └── src/
-        ├── index.js            # entry, mounts routes
-        ├── db.js               # SQLite schema + migrations
-        ├── lib/                # auth helpers, profile seed
-        ├── services/           # parser, google, llm, render, gmail-send
-        └── routes/             # auth, profile, upload, recipients, generate, send
-```
-
-📖 Full design notes and decisions live in [`DOCS.md`](./DOCS.md).
+> The OAuth consent screen runs in **Testing** mode: add your Gmail as a **test user** in Google Cloud Console.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [x] Recruiter import (CSV/XLSX)
-- [x] Profile system with resume seed
-- [x] Template mail-merge generation
-- [x] Gmail OAuth + send
-- [ ] Scheduled / throttled sending
-- [ ] Open & reply tracking
-- [ ] Multi-template A/B testing
+- [x] Recruiter import (CSV / XLSX) with smart extraction + contact classification
+- [x] Reusable profile + template mail-merge (LLM opt-in)
+- [x] Inline review & edit · multi-select · random-N send
+- [x] Paced, capped, restart-safe send queue with live status toasts
+- [x] Per-contact application tracker
+- [ ] **Resume builder** — tailor a resume per role and auto-attach it to each email *(see [`docs/LANDING_PAGE.md`](./docs/LANDING_PAGE.md))*
+- [ ] Open & reply detection (IMAP / Gmail watch)
 
 ---
 

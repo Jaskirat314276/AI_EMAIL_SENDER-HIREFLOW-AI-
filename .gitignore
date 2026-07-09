@@ -28,3 +28,9 @@ npm-debug.log*
 # Personal files
 JASKIRAT_RESUME_SDE_M.pdf
 *.pdf
+
+# Docs — keep only the landing-page spec (and the README screenshot) public
+docs/*
+!docs/LANDING_PAGE.md
+!docs/screenshot.png
+/DOCS.md

@@ -25,6 +25,7 @@ export default function Btn({ children, onClick, variant = 'primary', icon: Icon
         border: `1px solid ${variants.border}`,
         fontFamily: fBody, fontWeight: 500,
         transform: hov && !disabled ? 'translateY(-1px)' : 'none',
+        boxShadow: hov && !disabled && variant === 'primary' ? `0 6px 20px ${c.accentSoft}` : 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
       }}

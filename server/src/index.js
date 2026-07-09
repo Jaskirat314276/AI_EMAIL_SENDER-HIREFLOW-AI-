@@ -8,6 +8,8 @@ import uploadRouter from './routes/upload.js';
 import recipientsRouter from './routes/recipients.js';
 import generateRouter from './routes/generate.js';
 import sendRouter from './routes/send.js';
+import trackerRouter from './routes/tracker.js';
+import { startWorker } from './services/worker.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -25,6 +27,7 @@ app.use('/profile', profileRouter);
 app.use('/upload', uploadRouter);
 app.use('/recipients', recipientsRouter);
 app.use('/send', sendRouter);
+app.use('/tracker', trackerRouter);
 app.use('/', generateRouter);
 
 app.use((err, req, res, next) => {
@@ -34,4 +37,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`hireflow-server listening on http://localhost:${PORT}`);
+  startWorker();
 });
